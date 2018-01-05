@@ -1,0 +1,80 @@
+---
+title: "Day 3 Homework"
+output: html_document
+---
+
+1. Identify a column in your data that *should* be a factor (whether it is or not). Check to see whether R is already treating it as a factor, and if not, convert it into a factor.
+
+```{r}
+rm(list=ls(all=T))
+library(readxl)
+my.event.data<-read_excel("/Users/rithvikyarlagadda/Documents/R_GVPT622/PSYC798/my_R_homework/day3/event_data.xlsx")[,c("year","type_of_violence","conflict_name","dyad_name","where_coordinates", "country","best","adm_1")]
+class(my.event.data$type_of_violence) #this should be a factor but it is treated as a numeric
+my.event.data$type_of_violence<-as.factor(my.event.data$type_of_violence) #convert into a factor and assign it to a different variable
+class(my.event.data$type_of_violence)
+
+```
+
+2. What are the levels of the factor? How many occurrences of each level are there in the data?
+   
+```{r}
+levels(my.event.data$type_of_violence) #to check the levels of the factor variable
+#(1)95300 (2)11526 (3)28355
+
+summary(my.event.data$type_of_violence) #gives the count of each level
+
+```
+
+3. Create a new column that is a numeric "version" of the factor column, using `as.numeric()`. Use `xtabs()` to see how the values of these columns line up.
+
+```{r}
+my.event.data$numeric_violencetype<-as.numeric(my.event.data$type_of_violence) #converting into a numeric type and assigning into a different column
+
+xtabs(~ type_of_violence + numeric_violencetype, my.event.data) #to see the count of values of each of these two columns in the dataset. 
+
+```
+
+4. Create another column that is a copy of the factor column. Now, recode this new column so that the factor levels have new names. 
+  (e.g., if you have a factor with levels "A" and "B", you could make a new column that had "condition A" and "condition B" as the level names instead)
+
+```{r}
+my.event.data$factor_violencetype<-factor(my.event.data$type_of_violence, levels = c(1,2,3), labels = c("state-based conflict", "non-state conflict", "one-sided violence"))
+levels(my.event.data$factor_violencetype) #recheck the levels 
+```
+
+5. Change the order of the levels in your new factor, using three different methods:
+  a. `relevel()`
+  b. `reorder()`
+  c. `factor()`
+
+```{r}
+levels(my.event.data$factor_violencetype) #first check the levels
+my.event.data$relevelfunc<-relevel(my.event.data$factor_violencetype, "non-state conflict") #using relevel function
+xtabs(~ factor_violencetype + relevelfunc, my.event.data)
+
+my.event.data$reorderfunc<-reorder(my.event.data$factor_violencetype, my.event.data$best) #reordering the levels based on the numeric variable 'best' that indicates the fatalities for each event in the data
+xtabs(~ factor_violencetype + reorderfunc, my.event.data) 
+str(my.event.data$reorderfunc) #check how the reordering was done based on the (increasing) values of means for each level
+
+my.event.data$factorfunc<-factor(my.event.data$factor_violencetype, levels = c("one-sided violence", "state-based conflict", "non-state conflict")) #changin the order of levels using factor function
+levels(my.event.data$factorfunc) #recheck the changed levels
+xtabs(~ factor_violencetype + factorfunc, my.event.data) 
+
+```
+
+6. Missing values
+  a. Do you have any missing values (NA) in your data?
+  b. Are there any places where you *should* have missing values but they were read into R as some other value?
+  c. If the answer to (b) is "yes", figure out how to read in your data in a way that correctly identifies the missing value "code"
+  d. If you have any NAs in your data, describe why you think those values are missing. Does there appear to be any systematic relationship between missingness and other variables in your data?
+
+```{r}
+my.event.data[!complete.cases(my.event.data),] #Yes, there are 7060 missing values (NA) in my dataset
+
+#All missing values in my data were coded as NA, hence they were correctly read into R as missing values
+
+#All the identified missing values are under the variable adm_1 indicating the location (province level) of each event in the dataset. Since the data is coded from news sources, it may be often the case that we may not have the exact location for some events in the dataset.This includes either the case where the news article does not specify any location for that event or the case where it specified an ambiguous location such as the border between any two provinces in a country. 
+
+#There is no systematic relationship between missingness and other variable in my dataset, except that NA's are mostly obtained when there is a lack of information on locations or some ambiguity involved in their specification. This can be identified from the 'where_cordinates' variable. 
+```
+
