@@ -11,7 +11,7 @@ library(readxl)
 my.event.data<-read_excel("/Users/rithvikyarlagadda/Documents/R_GVPT622/PSYC798/my_R_homework/day3/event_data.xlsx")[,c("year","type_of_violence","conflict_name","dyad_name","where_coordinates", "country","best","adm_1")]
 class(my.event.data$type_of_violence) #this should be a factor but it is treated as a numeric
 my.event.data$type_of_violence<-as.factor(my.event.data$type_of_violence) #convert into a factor and assign it to a different variable
-class(my.event.data$type_of_violence)
+class(my.event.data$type_of_violence) #to check the class of the variable
 
 ```
 
@@ -38,7 +38,7 @@ xtabs(~ type_of_violence + numeric_violencetype, my.event.data) #to see the coun
   (e.g., if you have a factor with levels "A" and "B", you could make a new column that had "condition A" and "condition B" as the level names instead)
 
 ```{r}
-my.event.data$factor_violencetype<-factor(my.event.data$type_of_violence, levels = c(1,2,3), labels = c("state-based conflict", "non-state conflict", "one-sided violence"))
+my.event.data$factor_violencetype<-factor(my.event.data$type_of_violence, levels = c(1,2,3), labels = c("state-based conflict", "non-state conflict", "one-sided violence")) #relabelling the names of the factor levels
 levels(my.event.data$factor_violencetype) #recheck the levels 
 ```
 
@@ -50,7 +50,7 @@ levels(my.event.data$factor_violencetype) #recheck the levels
 ```{r}
 levels(my.event.data$factor_violencetype) #first check the levels
 my.event.data$relevelfunc<-relevel(my.event.data$factor_violencetype, "non-state conflict") #using relevel function
-xtabs(~ factor_violencetype + relevelfunc, my.event.data)
+xtabs(~ factor_violencetype + relevelfunc, my.event.data) #to check the cross-taluation of values between the two factor variables
 
 my.event.data$reorderfunc<-reorder(my.event.data$factor_violencetype, my.event.data$best) #reordering the levels based on the numeric variable 'best' that indicates the fatalities for each event in the data
 xtabs(~ factor_violencetype + reorderfunc, my.event.data) 
