@@ -69,11 +69,13 @@ xtabs(~ factor_violencetype + factorfunc, my.event.data)
   d. If you have any NAs in your data, describe why you think those values are missing. Does there appear to be any systematic relationship between missingness and other variables in your data?
 
 ```{r}
-my.event.data[!complete.cases(my.event.data),] #Yes, there are 7060 missing values (NA) in my dataset
+my.event.data[!complete.cases(my.event.data),] #identifies all those incomplete or missing cases in my dataset
+
+#Yes, there are 7060 missing values (NA) in my dataset
 
 #All missing values in my data were coded as NA, hence they were correctly read into R as missing values
 
-#All the identified missing values are under the variable adm_1 indicating the location (province level) of each event in the dataset. Since the data is coded from news sources, it may be often the case that we may not have the exact location for some events in the dataset.This includes either the case where the news article does not specify any location for that event or the case where it specified an ambiguous location such as the border between any two provinces in a country. 
+#All the identified missing values are under the variable 'adm_1' indicating the location (province level) of each event in the dataset. Since the data is coded from news sources, it may be often the case that we may not have the exact location for some events in the dataset.This includes either the case where the news article does not specify any location for that event or the case where it specified an ambiguous location such as the border between any two provinces in a country. 
 
 #There is no systematic relationship between missingness and other variable in my dataset, except that NA's are mostly obtained when there is a lack of information on locations or some ambiguity involved in their specification. This can be identified from the 'where_cordinates' variable. 
 ```
