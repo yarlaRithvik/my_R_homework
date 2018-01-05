@@ -56,7 +56,7 @@ my.event.data$reorderfunc<-reorder(my.event.data$factor_violencetype, my.event.d
 xtabs(~ factor_violencetype + reorderfunc, my.event.data) 
 str(my.event.data$reorderfunc) #check how the reordering was done based on the (increasing) values of means for each level
 
-my.event.data$factorfunc<-factor(my.event.data$factor_violencetype, levels = c("one-sided violence", "state-based conflict", "non-state conflict")) #changin the order of levels using factor function
+my.event.data$factorfunc<-factor(my.event.data$factor_violencetype, levels = c("one-sided violence", "state-based conflict", "non-state conflict")) #changing the order of levels using factor function
 levels(my.event.data$factorfunc) #recheck the changed levels
 xtabs(~ factor_violencetype + factorfunc, my.event.data) 
 
