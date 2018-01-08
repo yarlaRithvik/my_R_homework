@@ -1,0 +1,52 @@
+---
+title: "Day 4 Homework"
+output: html_document
+---
+
+1. Find some aspect of your data that needs to be combined or merged in some way.  This could be a variety of things:
+  - multiple "sheets" in an Excel
+  - multiple files that should be combined into one data set
+  - properties that need to be merged in to one data set. For example:
+    - you have a table of subject properties (gender, handedness, etc.) that need to be merged into the item-level data
+    - you have other information on countries (population, etc.) that need to be merged in
+  - if you DON'T have this naturally-occurring issue, figure out a way to manufacture it. For example:
+    - split up your data into chunks
+    - make up some new table of information that you want to merge in
+  - Explain (in words) what you are trying to do
+  - Use binding/merging commands to accomplish this
+  - Complete at least ONE example of binding and ONE example of merging
+
+```{r}
+
+#For the purpose of this exercise, I am arbitrarily splitting my data into chunks
+
+rm(list=ls(all=T))
+library(readxl)
+my.event.data<-read_excel("/Users/rithvikyarlagadda/Documents/R_GVPT622/PSYC798/my_R_homework/day3/event_data.xlsx")[,c("year","type_of_violence","dyad_name")] #splitting my data frame so that there are 3 columns in the new dataframe
+                                                                                                  my.event.data1<-read_excel("/Users/rithvikyarlagadda/Documents/R_GVPT622/PSYC798/my_R_homework/day3/event_data.xlsx")[,c("dyad_name", "country","best")] #splitting my data frame so that there are 3 columns in the new dataframe
+
+my.event.data$type_of_violence_factor<-as.factor(my.event.data$type_of_violence) #converting one of the variable into a factor, which is actually supposed to be a factor but is numeric
+levels(my.event.data$type_of_violence_factor)
+
+my.event.data2<-droplevels(my.event.data[my.event.data$type_of_violence_factor=="1",]) #dropping the factor level '1' from one of the variable and creating a new dataframe 
+
+my.event.data3<-droplevels(my.event.data[my.event.data$type_of_violence_factor!="1",]) #dropping the factor levels 2 and 3 from one of the variables and creating a new dataframe 
+
+library(dplyr) #calling the dplyr package 
+
+summary(my.event.data2)
+summary(my.event.data3)
+
+#row binding 
+my.event.data.rowbind<-bind_rows(my.event.data2, my.event.data3) #binding the two dataframes that have the same columns but different number of observations
+
+event.data.ID<-as.data.frame(my.event.data[,"year"]) #creating a column vector from the main dataframe 
+
+#column binding 
+my.event.data.colbind<-cbind(my.event.data1, event.data.ID) #attaching the 'year' column to another dataframe with 5 variables in it
+
+#merging
+my.event.data.merge<-merge(x = my.event.data, y = my.event.data1, by = "dyad_name") #merging two dataframes that have a common column or variable between them 
+
+#Since there are many observations, 'merge' is taking a lot of time to run. But, I am atleast positive about the logic behind it.
+```
