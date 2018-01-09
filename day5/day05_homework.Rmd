@@ -14,32 +14,32 @@ library(reshape2)
 
 my.event.data<-read_excel("/Users/rithvikyarlagadda/Documents/R_GVPT622/PSYC798/my_R_homework/day3/event_data.xlsx")[,c("year","type_of_violence","conflict_name","dyad_name","where_coordinates", "country","best","adm_1")] #subsetting those columns from the main dataset that is required for my project
 
-class(my.event.data$dyad_name)
+head(my.event.data)
 summary(my.event.data)
-colnames(my.event.data)
 
 #relabelling column names 
-names(my.event.data)[names(my.event.data) == "type_of_violence"]<-"Violence.type"
-names(my.event.data)[names(my.event.data) == "conflict_name"]<-"Conflict.name"
-names(my.event.data)[names(my.event.data) == "dyad_name"]<-"Dyad.name"
-names(my.event.data)[names(my.event.data) == "where_coordinates"]<-"Location.coordinates"
-names(my.event.data)[names(my.event.data) == "best"]<-"Fatalities"
-names(my.event.data)[names(my.event.data) == "adm_1"]<-"Province"
+names(my.event.data)[names(my.event.data) == "type_of_violence"]<-"violence.type"
+names(my.event.data)[names(my.event.data) == "conflict_name"]<-"conflict.name"
+names(my.event.data)[names(my.event.data) == "dyad_name"]<-"dyad.name"
+names(my.event.data)[names(my.event.data) == "where_coordinates"]<-"location.coordinates"
+names(my.event.data)[names(my.event.data) == "best"]<-"fatalities"
+names(my.event.data)[names(my.event.data) == "adm_1"]<-"province"
 
-my.event.data$Violence.type<-as.factor(my.event.data$Violence.type) #this should actually be a factor variable but it is numeric. So, we convert into a factor 
+my.event.data$violence.type<-as.factor(my.event.data$violence.type) #this should actually be a factor variable but it is numeric. So, we convert into a factor 
 
-class(my.event.data$Violence.type)
+my.event.data$violence.type<-factor(my.event.data$violence.type, levels = c(1,2,3), labels = c("state-based conflict", "non-state conflict", "one-sided violence")) #relabelling the names of the factor levels
 
-my.event.data$Violence.type<-factor(my.event.data$Violence.type, levels = c(1,2,3), labels = c("state-based conflict", "non-state conflict", "one-sided violence")) #relabelling the names of the factor levels
-
-levels(my.event.data$Violence.type) #rechecking the levels of the factor variable 
+levels(my.event.data$violence.type) #rechecking the levels of the factor variable 
 
 ```
 
 1. Aggregate (e.g., get mean/median/max/something) of some numerical variable, over one or more factors.  Use `group_by()` plus `summarize()` from the `dplyr` package. You may or may not need to reshape the data first!
 
 ```{r}
-violence_type.summaries <- summarize(group_by(my.event.data, Violence.type), count.fatalities = sum(Fatalities, na.rm=TRUE), mean.fatalities = mean(Fatalities, na.rm = TRUE), median.fatalities = median(Fatalities, na.rm = TRUE), maximum.fatalities = max(Fatalities, na.rm = TRUE)) #summarizing the fatalities variable (numeric) based on 3 different levels of violence type (factor)
+
+#summarizing the fatalities variable (numeric) based on 3 different levels of violence type (factor) and different countries
+
+violence_type.summaries <- summarize(group_by(my.event.data, violence.type, country), count.fatalities = sum(fatalities, na.rm=TRUE), mean.fatalities = mean(fatalities, na.rm = TRUE), median.fatalities = median(fatalities, na.rm = TRUE), maximum.fatalities = max(fatalities, na.rm = TRUE)) 
 
 ```
 
