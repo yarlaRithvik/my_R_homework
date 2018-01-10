@@ -199,7 +199,7 @@ dev.off()
 8. Is there a better type of visualization for your data?  What numbers would you like to be able to visualize better?  Be as explicit as possible, and write some "pseudo-code" to ilustrate what you think you would like.
 
 ```{r}
-#I would like to implement spatial analysis and generate maps with fatalities per
+#I would like to implement spatial analysis and generate maps with fatalities per event. I am still working on the code to generate maps on R. 
 ```
 
 
