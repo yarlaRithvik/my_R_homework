@@ -1,0 +1,206 @@
+---
+title: "Day 6 Homework"
+output: html_document
+---
+
+0. Reload your data, and re-use the code you already have for getting things formatted nicely (columns renamed, factors relabeled, etc.)
+
+```{r}
+rm(list=ls(all=TRUE))
+library(readxl)
+library(dplyr)
+library(reshape2)
+library(ggplot2)
+
+my.event.data<-read_excel("/Users/rithvikyarlagadda/Documents/R_GVPT622/PSYC798/my_R_homework/day3/event_data.xlsx")[,c("year","type_of_violence","conflict_name","dyad_name","where_coordinates", "country","best","adm_1")] #subsetting those columns from the main dataset that is required for my project
+
+head(my.event.data)
+summary(my.event.data)
+
+#relabelling column names 
+names(my.event.data)[names(my.event.data) == "type_of_violence"]<-"violence.type"
+names(my.event.data)[names(my.event.data) == "conflict_name"]<-"conflict.name"
+names(my.event.data)[names(my.event.data) == "dyad_name"]<-"dyad.name"
+names(my.event.data)[names(my.event.data) == "where_coordinates"]<-"location.coordinates"
+names(my.event.data)[names(my.event.data) == "best"]<-"fatalities"
+names(my.event.data)[names(my.event.data) == "adm_1"]<-"province"
+
+my.event.data$violence.type<-as.factor(my.event.data$violence.type) #this should actually be a factor variable but it is numeric. So, we convert into a factor 
+
+my.event.data$violence.type<-factor(my.event.data$violence.type, levels = c(1,2,3), labels = c("state-based conflict", "non-state conflict", "one-sided violence")) #relabelling the names of the factor levels
+
+levels(my.event.data$violence.type) #rechecking the levels of the factor variable 
+
+my.event.data$violence.type.numeric<-as.numeric(my.event.data$violence.type)
+```
+
+1. Run TWO DIFFERENT simple analyses or statistical tests, such as linear regression (`lm()`), logistic regression (`glm()`), correlation test (`cor.test()`), t-test (`t.test()`), or non-parametric tests (e.g., `wilcox.test()`).  For each of these:
+  - Describe why you are doing this analysis, i.e., what question is it answering?
+  - I won't judge you on statistical expertise!  (though I will make comments if I think I can be helpful)
+  - Report some key statistics from the analysis, using **inline** code. HINT: outside of an R code chunk, use `r codehere` format.
+  
+```{r}
+violence_type.summaries <- summarize(group_by(my.event.data, violence.type, country), count.fatalities = sum(fatalities, na.rm=TRUE), mean.fatalities = mean(fatalities, na.rm = TRUE), median.fatalities = median(fatalities, na.rm = TRUE), maximum.fatalities = max(fatalities, na.rm = TRUE)) #new dataset for my analysis
+
+#Does the type of violence influence the intensitiy of events? 
+
+results.linear<-lm(count.fatalities ~ violence.type, data = violence_type.summaries)
+results.linear
+
+results.summary.linear<-summary(results.linear)
+
+#to test whether violence type is related to fatalities per event
+correlation.value<-cor.test(my.event.data$violence.type.numeric, my.event.data$fatalities)
+
+```
+The adjusted $R^2$ for this model is `r results.summary.linear$adj.r.squared`, the coefficient value is `r results.linear$coefficients`
+
+2. Pick a single numerical variable from your data.  Use `ggplot` to plot a histogram and a density plot (separately).
+   - Try some different values for `binwidth` for the histogram.
+   - Try some different values for `adjust` for the density plot.
+
+```{r}
+
+class(violence_type.summaries$violence.type)
+class(violence_type.summaries$count.fatalities)
+
+violence_type.summaries$violencetype.numeric<-as.numeric(violence_type.summaries$violence.type)
+ggplot(data = violence_type.summaries, aes(x = violencetype.numeric)) + geom_histogram(binwidth = .5)
+
+histogram.fatalities<-ggplot(data = violence_type.summaries, aes(x = count.fatalities)) + geom_histogram(binwidth = .5)
+
+histogram.fatalities1<-ggplot(data = violence_type.summaries, aes(x = count.fatalities)) + geom_histogram(binwidth = .01)
+
+
+density.fatalities<-ggplot(violence_type.summaries, aes(x = count.fatalities)) + geom_density(adjust = .5, fill = "grey")
+
+density.fatalities1<-ggplot(violence_type.summaries, aes(x = count.fatalities)) + geom_density(adjust = .25, fill = "grey")
+
+
+```
+
+3. How does the distribution look?  Try transforming the variable and try to get it to look more normal (i.e., more Gaussian).  If it already looks normal, do something to it to make it look non-normal.
+
+```{r}
+
+
+density.transformed_fatalities<-ggplot(data = violence_type.summaries, aes(log(count.fatalities))) + geom_density(adjust = 0.5, fill = "grey")
+
+
+
+```
+
+4. Is there a factor that you can use to break up this variable into groups of observations?  If not, reshape your data so that there is, or create a factor if necessary.  Then, do the following:
+   - Plot it as a density plot, mapping `color` to the factor
+   - Same, but try using `fill` instead of `color`
+   - Same, using `linetype` instead of `color`
+   - Plot the data as a boxplot, with the factor as `x` and the numerical variable as `y`  HINT: use geom_boxplot
+
+```{r}
+fatalities.density.violencetype1<-ggplot(data = violence_type.summaries, aes(log(count.fatalities))) + geom_density(aes(color = violence.type))
+
+fatalities.density.violencetype2<-ggplot(data = violence_type.summaries, aes(log(count.fatalities))) + geom_density(aes(fill = violence.type))
+
+
+fatalities.density.violencetype3<-ggplot(data = violence_type.summaries, aes(log(count.fatalities))) + geom_density(aes(linetype = violence.type))
+
+box.plot<-ggplot(violence_type.summaries, aes(violence.type, log(count.fatalities))) + geom_boxplot()
+
+```
+
+5. Create a bar plot of the cell means of some variable. Steps:
+   - Find a numerical variable and a grouping factor (this can be the same as those chosen above).
+   - Get the mean value of the numerical variable, broken down by the factor.  
+   - Plot this new aggregated data frame, using the "bar" geom.
+   - HINT: use stat = "identity" in the geom_bar() function.
+   
+```{r}
+subject.info <- data.frame(ID = 3:12, gender = c("male", "male", "female", "female", "female", "female", "male", "female", "male", "male")) 
+
+mean.fatal_state_based<-mean(violence_type.summaries$count.fatalities[violence_type.summaries$violence.type=="state-based conflict"])
+
+
+mean.fatal_non_state<-mean(violence_type.summaries$count.fatalities[violence_type.summaries$violence.type=="non-state conflict"])
+
+mean.fatal_one_sided<-mean(violence_type.summaries$count.fatalities[violence_type.summaries$violence.type=="one-sided violence"])
+
+new.data.frame<-data.frame(violence_type = c("state-based conflict", "non-state conflict", "one-sided violence"), mean.fatalities = c(mean.fatal_state_based, mean.fatal_non_state, mean.fatal_one_sided))
+
+barplot_new.dataframe<-ggplot(data = new.data.frame, aes(x = violence_type, y = mean.fatalities)) + geom_bar(stat = "identity")
+```
+   
+6. Create a bar plot that gets means broken down by TWO grouping factors.  For example, if Factor A has levels "red" and "blue" and Factor B has levels "north" and "south", get the cell means of "red north", "red south", "blue north", and "blue south."  
+   - Use the dplyr methods to get these means into a data frame format.
+   - Use the "bar" geom, but map the two variables to different graphical dimension.  One should be the "x" value, but the other should be mapped to some other visual property.
+
+```{r}
+
+median.count<-median(violence_type.summaries$count.fatalities)
+
+violence_type.summaries$fatality_threshold<-violence_type.summaries$count.fatalities
+violence_type.summaries$fatality_threshold[violence_type.summaries$count.fatalities<median.count]<-"low"
+violence_type.summaries$fatality_threshold[violence_type.summaries$count.fatalities>=median.count]<-"high"
+
+SL<-as.data.frame(filter(violence_type.summaries, violence.type=="state-based conflict", fatality_threshold=="low"))
+
+SH<-as.data.frame(filter(violence_type.summaries, violence.type=="state-based conflict", fatality_threshold=="high"))
+
+NSL<-as.data.frame(filter(violence_type.summaries, violence.type=="non-state conflict", fatality_threshold=="low"))
+
+NSH<-as.data.frame(filter(violence_type.summaries, violence.type=="non-state conflict", fatality_threshold=="high"))
+
+OSL<-as.data.frame(filter(violence_type.summaries, violence.type=="one-sided violence", fatality_threshold=="low"))
+
+OSH<-as.data.frame(filter(violence_type.summaries, violence.type=="one-sided violence", fatality_threshold=="high"))
+
+mean.SL<-mean(SL$count.fatalities)
+mean.SH<-mean(SH$count.fatalities)
+mean.OSL<-mean(OSL$count.fatalities)
+mean.OSH<-mean(OSH$count.fatalities)
+mean.NSL<-mean(NSL$count.fatalities)
+mean.NSH<-mean(NSH$count.fatalities)
+
+new.data.frame1<-data.frame(violence_type = c("state_low", "state_high", "one_sided_low", "one_sided_high", "non_state_low", "non_state_high"), mean.fatalities = c(mean.SL, mean.SH, mean.OSL, mean.OSH, mean.NSL, mean.NSH)) 
+
+barplot_new.data.frame1<-ggplot(data = new.data.frame1, aes(x = violence_type, y = mean.fatalities)) + geom_bar()
+
+```
+
+7. Output all of the plots above (from problems 1-6) as a single PDF.
+
+```{r}
+pdf("myplots_day6.pdf", width = 10, height = 4)
+ggplot(data = violence_type.summaries, aes(x = count.fatalities)) + geom_histogram(binwidth = .5)
+
+ggplot(data = violence_type.summaries, aes(x = count.fatalities)) + geom_histogram(binwidth = .01)
+
+ggplot(violence_type.summaries, aes(x = count.fatalities)) + geom_density(adjust = .5, fill = "grey")
+
+ggplot(violence_type.summaries, aes(x = count.fatalities)) + geom_density(adjust = .25, fill = "grey")
+
+ggplot(data = violence_type.summaries, aes(log(count.fatalities))) + geom_density(adjust = 0.5, fill = "grey")
+
+ggplot(data = violence_type.summaries, aes(log(count.fatalities))) + geom_density(aes(color = violence.type))
+
+ggplot(data = violence_type.summaries, aes(log(count.fatalities))) + geom_density(aes(fill = violence.type))
+
+
+ggplot(data = violence_type.summaries, aes(log(count.fatalities))) + geom_density(aes(linetype = violence.type))
+
+ggplot(violence_type.summaries, aes(violence.type, log(count.fatalities))) + geom_boxplot()
+
+ggplot(data = new.data.frame, aes(x = violence_type, y = mean.fatalities)) + geom_bar(stat = "identity")
+
+ggplot(data = new.data.frame1, aes(x = violence_type, y = mean.fatalities)) + geom_bar()
+
+dev.off()
+```
+
+8. Is there a better type of visualization for your data?  What numbers would you like to be able to visualize better?  Be as explicit as possible, and write some "pseudo-code" to ilustrate what you think you would like.
+
+```{r}
+#I would like to implement spatial analysis and generate maps with fatalities per
+```
+
+
+
