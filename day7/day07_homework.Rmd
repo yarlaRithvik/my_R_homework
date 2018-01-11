@@ -1,0 +1,118 @@
+---
+title: "Day 7 Homework"
+output: html_document
+---
+
+Find three relationships in your data.  For each relationship, do the following:
+
+1. Verbally articulate the relationship you want to examine with a plot.
+
+2. Verbally identify what variables you want to map to each graphical dimension.
+
+3. Reshape your data as needed.
+
+```{r}
+
+rm(list=ls(all=TRUE))
+library(readxl)
+library(dplyr)
+library(reshape2)
+library(ggplot2)
+
+my.event.data<-read_excel("/Users/rithvikyarlagadda/Documents/R_GVPT622/PSYC798/my_R_homework/day3/event_data.xlsx")[,c("year","type_of_violence","conflict_name","dyad_name","where_coordinates", "country","best","adm_1")] #subsetting those columns from the main dataset that is required for my project
+
+a<-1
+
+my.event.data$event.count<-a
+
+head(my.event.data)
+
+names(my.event.data)[names(my.event.data) == "best"]<-"fatalities" #renaming the colummn name 
+
+my.event.data$violence.type_factor<-as.factor(my.event.data$type_of_violence) #this should actually be a factor variable but it is numeric. So, we convert into a factor 
+
+my.event.data$violence.type_factor.new<-factor(my.event.data$violence.type_factor, levels = c(1,2,3), labels = c("state-based conflict", "non-state conflict", "one-sided violence")) #relabelling the names of the factor levels
+
+# The following three relationships are analyzed in my dataset: 
+
+# Year and Event count
+
+# Violence type and Event Count 
+
+# Country and Event fatalities
+
+
+violence_type.summaries <- summarize(group_by(my.event.data, country, type_of_violence), count.fatalities = sum(fatalities, na.rm=TRUE), count.event = sum(event.count, na.rm = TRUE), median.fatalities = median(fatalities, na.rm = TRUE), maximum.fatalities = max(fatalities, na.rm = TRUE)) #reshaped dataset to address part of my analysis
+
+violence_type.summaries1 <- summarize(group_by(my.event.data, year, type_of_violence), count.fatalities = sum(fatalities, na.rm=TRUE), count.event = sum(event.count, na.rm = TRUE), median.fatalities = median(fatalities, na.rm = TRUE), maximum.fatalities = max(fatalities, na.rm = TRUE)) #reshaped dataset to address part of my analysis
+
+data.new<-summarize(group_by(violence_type.summaries, country), count.fatalities = sum(count.fatalities, na.rm=TRUE), count.event = sum(count.event, na.rm = TRUE), na.rm = TRUE) #removing the duplicates from the above dataset
+
+data.new1<-summarize(group_by(violence_type.summaries1, year), count.fatalities = sum(count.fatalities, na.rm=TRUE), count.event = sum(count.event, na.rm = TRUE), na.rm = TRUE) #removing the duplicates from the above dataset
+
+violence_type.summaries$violence.type_factor<-as.factor(violence_type.summaries$type_of_violence)
+
+
+```
+
+4. Use ggplot2 to create your graphs.
+
+```{r}
+
+density.transformed_fatalities<-ggplot(data = violence_type.summaries, aes(log(count.fatalities))) + geom_density(adjust = 0.5, fill = "grey") + xlab("Fatalities") + ylab("density") #to obtain normality 
+
+density.transformed_eventcount<-ggplot(data = violence_type.summaries, aes(log(count.event))) + geom_density(adjust = 0.5, fill = "grey") + xlab("Event count") + ylab("density") #to obtain normality 
+
+
+ggplot2<-ggplot(data.new1, aes(x = year, y = count.event)) + geom_point() + xlab("Year") + ylab("Event count")
+
+ggplot3<-ggplot(violence_type.summaries, aes(x = type_of_violence, y = log(count.event))) + geom_point() + xlab("Violence type") + ylab("Event count")
+
+
+ggplot4<-ggplot(violence_type.summaries, aes(x = country, y = log(count.fatalities))) + geom_point() + xlab("Country") + ylab("Event fatalities")
+
+
+```
+
+5. Fiddle with colors, axis labels, themes, etc. until the plot looks "publication ready" to you.  Try to change at least one thing per plot.
+
+```{r}
+
+ggplot5<-ggplot(data.new1, aes(x = year, y = count.event)) + geom_point() + xlab("Year") + ylab("Event count") + theme_minimal()
+
+ggplot6<-ggplot(violence_type.summaries, aes(x = violence.type_factor, y = log(count.event), color=violence.type_factor)) + geom_point() + theme_minimal() + xlab("Violence type") + ylab("Event count")+theme(legend.position = "top") + scale_color_discrete(name = "Violence type", labels = c("state-based conflict", "non-state", "one-sided"))
+
+ggplot7<-ggplot(violence_type.summaries, aes(x = country, y = log(count.fatalities), color=violence.type_factor)) + geom_point() + xlab("Country") + ylab("Event fatalities") + theme_minimal() + theme(legend.position = "top") + scale_color_discrete(name = "Violence type", labels = c("state-based conflict", "non-state", "one-sided"))
+
+
+```
+
+6. Save all plots to a format that you could use in a paper.  HINT: PNG works well for pasting into Word documents.
+
+```{r}
+png("myplot_day7_1.png")
+print(ggplot2)
+dev.off() #printed them separately because all at once code is not rendering all graphs in one document
+
+png("myplot_day7_2.png")
+print(ggplot3)
+dev.off()
+
+png("myplot_day7_3.png")
+print(ggplot4)
+dev.off()
+
+png("myplot_day7_4.png")
+print(ggplot5)
+dev.off()
+
+png("myplot_day7_5.png")
+print(ggplot6)
+dev.off()
+
+png("myplot_day7_6.png")
+print(ggplot7)
+dev.off()
+
+```
+
