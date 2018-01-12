@@ -1,0 +1,70 @@
+---
+title: "Day 8 Homework"
+output: html_document
+---
+
+Find two repetitive things that you would like to be able to do with your data.  This can be something having to do with coding variables, or saving plots, or running an analysis multiple times on different subsets, etc. etc.  Just try to find something where you would normally need to "copy and paste" sections of code, varying only one or two things.  Figure out how to use a loop to accomplish this.  
+
+For BOTH of these things, take the following steps:
+
+1. Articulate what you want to do (verbally)
+
+2. Give some code that illustrates the "copy and paste" method.  This can just show a couple of steps.  That is, if you would be running through a bunch of iterations, just copy and paste a couple of times, not everything.
+
+3. Work this code into a loop format, so that no copy & paste is neccesary.  You will need to set up a "counter" variable that cycles through various values (which do not have to be numeric), changing with every pass through the loop.  But you may also need to make other changes to your code to accommodate the loop.
+
+As usual, send me your .Rmd file with any data I need to replicate your results.
+
+```{r}
+
+rm(list=ls(all=TRUE))
+library(readxl)
+library(ggplot2)
+library(dplyr)
+
+my.event.data<-read_excel("/Users/rithvikyarlagadda/Documents/R_GVPT622/PSYC798/my_R_homework/day3/event_data.xlsx")[,c("year","type_of_violence","conflict_name","dyad_name","where_coordinates", "country","best","adm_1")] #subsetting those columns from the main dataset that is required for my project
+
+
+# 1. Changing the names of the variables 
+
+# 1.1. I would like to rename/relabel the column names in my dataset
+
+# 1.2. THe regular "copy and paste" method would involve the following code: 
+
+names(my.event.data)[names(my.event.data) == "type_of_violence"]<-"violence.type"
+names(my.event.data)[names(my.event.data) == "conflict_name"]<-"conflict.name"
+names(my.event.data)[names(my.event.data) == "dyad_name"]<-"dyad.name"
+names(my.event.data)[names(my.event.data) == "where_coordinates"]<-"location.coordinates"
+names(my.event.data)[names(my.event.data) == "best"]<-"fatalities"
+names(my.event.data)[names(my.event.data) == "adm_1"]<-"province"
+
+# 1.3. Instead, using a 'for' loop would involve the following steps: 
+
+original.colnames<-c("type_of_violence","conflict_name", "dyad_name", "where_coordinates", "best", "adm_1")
+
+new.colnames<-c("violence.type","conflict.name", "dyad.name", "location.coordinates", "fatalities", "province")
+
+for (i in 1:6){
+  
+  names(my.event.data)[names(my.event.data) == original.colnames[i]]<-new.colnames[i]
+  
+}
+```
+
+# 2. I would like to create another factor type column (dummy variable) in my data frame that would check whether the fatalities are "low" or "high" threshold.    
+
+
+```{r}
+
+my.event.data$fatality.threshold<-0
+
+for(i in 1:nrow(my.event.data)){
+if (my.event.data[i,"fatalities"]<=median(my.event.data$fatalities)){
+  my.event.data[i,"fatality.threshold"]<-"low"
+} else {
+ my.event.data[i,"fatality.threshold"]<-"high"
+} 
+}
+
+
+```
