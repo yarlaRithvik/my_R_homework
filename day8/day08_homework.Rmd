@@ -57,6 +57,20 @@ for (i in 1:6){
 ```{r}
 
 my.event.data$fatality.threshold<-0
+library(dplyr)
+library(readxl)
+
+my.event.data<-read_excel("/Users/rithvikyarlagadda/Documents/R_GVPT622/PSYC798/my_R_homework/day3/event_data.xlsx")[,c("year","type_of_violence","conflict_name","dyad_name","where_coordinates", "country","best","adm_1")] #subsetting those columns from the main dataset that is required for my project
+
+summary.violence_type <- summarize(group_by(my.event.data, violence.type), count.fatalities = sum(fatalities, na.rm=TRUE), count.event = sum(event.count, na.rm = TRUE), median.fatalities = median(fatalities, na.rm = TRUE), maximum.fatalities = max(fatalities, na.rm = TRUE)) #reshaped dataset to address part of my analysis
+
+summary.year <- summarize(group_by(my.event.data, year), count.fatalities = sum(fatalities, na.rm=TRUE), count.event = sum(event.count, na.rm = TRUE), median.fatalities = median(fatalities, na.rm = TRUE), maximum.fatalities = max(fatalities, na.rm = TRUE)) #reshaped dataset to address part of my analysis
+
+summary.country <- summarize(group_by(my.event.data, country), count.fatalities = sum(fatalities, na.rm=TRUE), count.event = sum(event.count, na.rm = TRUE), median.fatalities = median(fatalities, na.rm = TRUE), maximum.fatalities = max(fatalities, na.rm = TRUE)) #reshaped dataset to address part of my analysis
+
+summary.dyad_name <- summarize(group_by(my.event.data, dyad.name), count.fatalities = sum(fatalities, na.rm=TRUE), count.event = sum(event.count, na.rm = TRUE), median.fatalities = median(fatalities, na.rm = TRUE), maximum.fatalities = max(fatalities, na.rm = TRUE)) #reshaped dataset to address part of my analysis
+
+
 
 for(i in 1:nrow(my.event.data)){
 if (my.event.data[i,"fatalities"]<=median(my.event.data$fatalities)){
