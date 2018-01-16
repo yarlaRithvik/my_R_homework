@@ -1,0 +1,99 @@
+---
+title: "Day 9 Homework"
+output: html_document
+---
+
+0. Tell me about something you want to either review, or something new to cover.
+
+```{r}
+
+# 1. I was hoping if we could briefly discuss about Latex and how to integrate it with R. Since, we are more likely to write our future papers in Latex, this can be a good place to start.
+
+# 2. I realize that R is a really powerful tool for visualization purposes. The ggplot package is one such function. If we could quickly review some important/foundational concepts to remember, that would be helpful. 
+
+```
+
+1. Use the `apply()` function to get the mean of several numerical columns, row-wise.  For example, imagine that you have three columns of numbers, and that you want to get the mean value for each row across the columns.  Use `apply()` to get this result and put it into a new column of your data frame.
+
+```{r}
+library(readxl)
+library(plyr)
+library(dplyr)
+
+my.event.data<-read_excel("/Users/rithvikyarlagadda/Documents/R_GVPT622/PSYC798/my_R_homework/day3/event_data.xlsx")[,c("year","type_of_violence","conflict_name","dyad_name","where_coordinates", "country","best","adm_1")] #subsetting only those required columns from the original dataset 
+
+names(my.event.data)[names(my.event.data) == "best"]<-"fatalities" #renaming one of the variables
+
+head(my.event.data)
+summary(my.event.data)
+
+# Note: For the purpose of this exercise, I'm considering these variables although in my analysis, 'type of violence' would be converted into a factor type. 
+
+my.event.data$mean<-apply(my.event.data[,c("year", "type_of_violence", "fatalities")], MARGIN = 1, FUN = mean, na.rm=TRUE) # calculated mean of the three numerical variables (columns) across different events (rows) and assigned to a different column
+
+```
+
+2. Write a small function. It can do something very, very simple.  It needs to have at least one argument.  Describe what you want it to do, write the function, and then use it on a few different cases.
+
+```{r}
+
+my.event.data$event.count<-rep(1, length(my.event.data$year)) # to keep track of the count of events in the dataframe
+
+# I would like to create a function that can summarize (boil down) the dataframe based on any one (or two) specific variables along with some useful statistics created as new columns in the summarized dataframe
+
+summary.conflict<-function(data, arg1, arg2=NULL){
+  
+output <- summarize(group_by_(data, arg1, arg2), count.fatalities = sum(fatalities, na.rm=TRUE), count.event = sum(event.count, na.rm = TRUE), mean.fatalities=mean(fatalities, na.rm=TRUE), median.fatalities = median(fatalities, na.rm = TRUE), maximum.fatalities = max(fatalities, na.rm = TRUE)) #reshaped dataset to address part of my analysis
+
+return(as.data.frame(output))
+
+}
+
+# example of summarizing the dataframe based on one variable 
+a<-summary.conflict(data = my.event.data, arg1="type_of_violence", arg2 = "country")
+
+# example of summarizing the dataframe based on two variables
+b<-summary.conflict(data = my.event.data, arg1="year")
+
+
+```
+
+3. Go back to the two things you tried to use loops for in Day 8 Homework.  Pick ONE of these things to try to "vectorize."  If you decide that something else would work better, describe some new thing you're trying to do that could be accomplished with a loop. Depending on what you were doing, this may use the `apply()` function, or the combination of `group_by()` and `do()`.  Either of these methods will likely require you to write a function first.  
+
+So first, create a function that will accomplish what you want *one* time.  Then use one of the "vectorizing" functions to apply your new function in an iterative way.  If you want your function to be applied to each row in your data frame, use `apply()` (or `rowwise()` and `mutate()`).  Otherwise, use `group_by()` to specify how to "break up" your date into "chunks", and pass your function to `do()` in order to apply your function to each chunk.
+
+Note that if you use `do()` and your function returns a data frame, the results will be a data frame.  But if you instead return some other object (like a ggplot object, or a regression object or a t-test object or something like that), then the result will be a list containing those objects.
+
+```{r}
+
+# 1. Creating a function that would regress 'fatalities' variable on 'year' variable 
+# 2. Then, using group_by() and do() functions, the regression results are obtained separately for each level of violence type
+
+regression.conflict<-function(data, col1, col2){
+  
+  data<-as.data.frame(data)
+  
+ regression.results<-lm(data[ ,col1] ~ data[ ,col2])
+ 
+ regression.summary<-summary(regression.results)
+ 
+ reg.coef.estimate<-regression.summary$coefficients["data[, col2]","Estimate"]
+ reg.se<-regression.summary$coefficients["data[, col2]","Std. Error"]
+  reg.pval<-regression.summary$coefficients["data[, col2]","Pr(>|t|)"]
+
+ 
+  results.table <- data.frame(coef.estimate = reg.coef.estimate,
+                              se = reg.se,
+                              p.val = reg.pval)
+  results.table
+  
+}
+
+regression.conflict(my.event.data, "fatalities", "year")
+
+conflict.regression.results <- group_by(my.event.data, type_of_violence) %>%
+  do(regression.conflict(., col1 = "year", col2 = "fatalities")) 
+
+
+```
+
